@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acesse sua Conta</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="main-container">
+        <div class="card">
+            <h2>Acesse sua Conta</h2>
+            <h3>Bem-vindo de volta!</h3>
+            <form id="login-form">
+                <div class="input-group">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="input-group">
+                    <label for="senha">Senha</label>
+                    <input type="password" id="senha" required>
+                </div>
+                <button type="submit" class="btn-primary">Entrar</button>
+            </form>
+            <div id="login-message" class="message" style="display: none;"></div>
+            <div class="form-link">
+                <p>Não tem uma conta? <a href="cadastro.html">Cadastre-se agora</a></p>
+            </div>
+        </div>
+    </div>
+    <!-- A CORREÇÃO ESTÁ AQUI vvv -->
+    <script src="js/auth.js"></script>
+    <script src="js/global.js"></script>
+</body>
+</html>

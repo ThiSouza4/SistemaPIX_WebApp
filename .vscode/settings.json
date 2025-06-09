@@ -1,0 +1,7 @@
+{
+    "java.project.sourcePaths": [
+        "src\\main\\java\\com\\exemplo\\pix\\config"
+    ],
+    "java.project.referencedLibraries": [],
+    "java.configuration.updateBuildConfiguration": "interactive"
+}

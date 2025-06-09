@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Painel - PIX Gemini</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .dashboard-card h2 { text-align: center; font-size: 26px; margin-bottom: 25px; }
+        .saldo-display { text-align: center; margin-bottom: 30px; background-color: var(--input-bg); padding: 20px; border-radius: 8px; }
+        .saldo-display p { margin: 0; font-size: 16px; color: var(--text-secondary); }
+        .saldo-display h1 { margin: 5px 0 0 0; font-size: 36px; color: var(--text-primary); }
+        .actions-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .action-card { background-color: var(--input-bg); padding: 20px; border-radius: 8px; text-align: center; text-decoration: none; color: var(--text-primary); transition: background-color 0.3s, transform 0.2s; }
+        .action-card:hover { background-color: #3a3a3a; transform: translateY(-3px); }
+        body.light-theme .action-card:hover { background-color: var(--action-card-hover); }
+        .action-card span { font-size: 28px; }
+        .action-card p { margin: 10px 0 0 0; font-weight: 500; }
+        .logout-link { display: block; text-align: center; margin-top: 30px; color: var(--link-color); text-decoration: none; font-weight: 500; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="card dashboard-card">
+            <h2 id="welcome-message">Carregando...</h2>
+            <div class="saldo-display">
+                <p>Saldo disponível</p>
+                <h1 id="saldo-display">R$ --,--</h1>
+            </div>
+            <div class="actions-grid">
+                <a href="pix.html" class="action-card"><span>&#8644;</span><p>Fazer PIX</p></a>
+                <a href="historico.html" class="action-card"><span>&#128220;</span><p>Histórico</p></a>
+                <a href="chaves-pix.html" class="action-card"><span>&#128273;</span><p>Minhas Chaves</p></a>
+                <a href="saque.html" class="action-card"><span>&#128181;</span><p>Saque</p></a>
+            </div>
+            <a href="#" id="logout-btn" class="logout-link">Sair da conta</a>
+        </div>
+    </div>
+    <script src="js/dashboard.js"></script>
+    <script src="js/global.js"></script>
+</body>
+</html>
