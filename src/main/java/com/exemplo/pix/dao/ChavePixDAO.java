@@ -21,9 +21,9 @@ public class ChavePixDAO {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     ChavePix chave = new ChavePix();
-                    chave.setId_chave(rs.getInt("id_chave"));
-                    chave.setId_conta(rs.getInt("id_conta"));
-                    chave.setTipo_chave(rs.getString("tipo_chave"));
+                    chave.setIdChave(rs.getInt("id_chave"));
+                    chave.setIdConta(rs.getInt("id_conta"));
+                    chave.setTipoChave(rs.getString("tipo_chave"));
                     chave.setChave(rs.getString("chave"));
                     chaves.add(chave);
                 }
@@ -47,14 +47,12 @@ public class ChavePixDAO {
                     }
                 }
             }
-
             if (idConta == -1) {
                 throw new SQLException("Conta não encontrada para o cliente.");
             }
-
             try (PreparedStatement stmtInsert = conn.prepareStatement(sqlInsert)) {
                 stmtInsert.setInt(1, idConta);
-                stmtInsert.setString(2, chave.getTipo_chave());
+                stmtInsert.setString(2, chave.getTipoChave());
                 stmtInsert.setString(3, chave.getChave());
                 stmtInsert.executeUpdate();
             }
@@ -98,7 +96,6 @@ public class ChavePixDAO {
         return false;
     }
     
-    // --- NOVO MÉTODO ADICIONADO AQUI ---
     public boolean verificarSeExisteChavePorTipo(int idCliente, String tipoChave) {
         String sql = "SELECT COUNT(*) FROM chavespix cp JOIN contas c ON cp.id_conta = c.id_conta WHERE c.id_cliente = ? AND cp.tipo_chave = ?";
         try (Connection conn = DatabaseUtil.getConnection();
@@ -114,11 +111,5 @@ public class ChavePixDAO {
             e.printStackTrace();
         }
         return false;
-    }
-
-    public boolean verificarSeExisteChaveAleatoria(int idCliente) {
-        // Este método agora faz a mesma coisa que o de cima, mas é bom manter
-        // para clareza do código onde ele já é usado.
-        return verificarSeExisteChavePorTipo(idCliente, "ALEATORIA");
     }
 }

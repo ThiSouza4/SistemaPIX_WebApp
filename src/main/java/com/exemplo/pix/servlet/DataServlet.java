@@ -3,11 +3,9 @@ package com.exemplo.pix.servlet;
 import com.exemplo.pix.dao.ChavePixDAO;
 import com.exemplo.pix.dao.ClienteDAO;
 import com.exemplo.pix.dao.ContaDAO;
-import com.exemplo.pix.dao.HistoricoOperacoesDAO;
 import com.exemplo.pix.model.ChavePix;
 import com.exemplo.pix.model.Cliente;
 import com.exemplo.pix.model.Conta;
-import com.exemplo.pix.model.HistoricoOperacoes;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.servlet.ServletException;
@@ -34,7 +32,6 @@ public class DataServlet extends HttpServlet {
     private final ChavePixDAO chavePixDAO = new ChavePixDAO();
     private final ClienteDAO clienteDAO = new ClienteDAO();
     private final ContaDAO contaDAO = new ContaDAO();
-    private final HistoricoOperacoesDAO historicoDAO = new HistoricoOperacoesDAO();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -113,21 +110,29 @@ public class DataServlet extends HttpServlet {
             }
             Integer idCliente = (Integer) session.getAttribute("idCliente");
             ChavePix novaChave = objectMapper.readValue(req.getReader(), ChavePix.class);
-            String tipoChave = novaChave.getTipo_chave();
+            String tipoChave = novaChave.getTipoChave();
             String valorChave = novaChave.getChave();
 
+            // --- LÓGICA DE VERIFICAÇÃO ATUALIZADA ---
             if ("ALEATORIA".equals(tipoChave)) {
                 if (chavePixDAO.verificarSeExisteChavePorTipo(idCliente, "ALEATORIA")) {
                     throw new SQLException("Duplicate key type for user");
                 }
                 valorChave = UUID.randomUUID().toString();
                 novaChave.setChave(valorChave);
-            }
-            
-            if (!"ALEATORIA".equals(tipoChave)) {
-                if (chavePixDAO.isChaveEmUso(valorChave)) {
+            } else {
+                // 1. Verifica se a chave já existe na tabela chavespix
+                boolean chavePixEmUso = chavePixDAO.isChaveEmUso(valorChave);
+                
+                // 2. Verifica se o dado já existe na tabela clientes
+                // A conversão para minúsculas é para corresponder ao nome da coluna no banco ("cpf", "email", etc.)
+                boolean dadoClienteEmUso = clienteDAO.isDadoUnicoEmUso(tipoChave.toLowerCase(), valorChave);
+
+                if (chavePixEmUso || dadoClienteEmUso) {
                     throw new SQLException("Duplicate entry");
                 }
+
+                // 3. Verifica se o usuário já tem uma chave daquele tipo
                 if (chavePixDAO.verificarSeExisteChavePorTipo(idCliente, tipoChave)) {
                     throw new SQLException("Duplicate key type for user");
                 }
@@ -136,12 +141,13 @@ public class DataServlet extends HttpServlet {
             chavePixDAO.adicionarChave(idCliente, novaChave);
             responseMap.put("message", "Chave cadastrada com sucesso!");
             resp.setStatus(HttpServletResponse.SC_CREATED);
+
         } catch (SQLException e) {
             String msg = e.getMessage();
             if (msg != null && msg.contains("Duplicate key type for user")) {
                 responseMap.put("message", "Você já possui uma chave deste tipo.");
             } else if (msg != null && msg.contains("Duplicate entry")) {
-                responseMap.put("message", "Esta chave já está em uso. Tente outra.");
+                responseMap.put("message", "Esta chave já está em uso por outro usuário. Tente outra.");
             } else {
                 responseMap.put("message", "Erro interno ao cadastrar a chave.");
             }
@@ -159,13 +165,25 @@ public class DataServlet extends HttpServlet {
         Map<String, Object> responseMap = new HashMap<>();
         try {
             ChavePix chaveParaAtualizar = objectMapper.readValue(req.getReader(), ChavePix.class);
-            if (chavePixDAO.isChaveEmUso(chaveParaAtualizar.getChave())) {
+            String novoValor = chaveParaAtualizar.getChave();
+            String tipoChave = chaveParaAtualizar.getTipoChave(); // Precisamos do tipo para a verificação
+
+            // --- LÓGICA DE VERIFICAÇÃO ATUALIZADA PARA O UPDATE ---
+            boolean chavePixEmUso = chavePixDAO.isChaveEmUso(novoValor);
+            boolean dadoClienteEmUso = false;
+            if (tipoChave != null && !tipoChave.equals("ALEATORIA")) {
+                dadoClienteEmUso = clienteDAO.isDadoUnicoEmUso(tipoChave.toLowerCase(), novoValor);
+            }
+
+            if (chavePixEmUso || dadoClienteEmUso) {
                 throw new SQLException("Duplicate entry");
             }
-            chavePixDAO.atualizarChave(chaveParaAtualizar.getId_chave(), chaveParaAtualizar.getChave());
+            
+            chavePixDAO.atualizarChave(chaveParaAtualizar.getIdChave(), novoValor);
             responseMap.put("message", "Chave alterada com sucesso!");
+
         } catch (SQLException e) {
-            if (e.getMessage().contains("Duplicate entry")) {
+            if (e.getMessage() != null && e.getMessage().contains("Duplicate entry")) {
                 responseMap.put("message", "Esta chave já está em uso. Tente outra.");
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             } else {

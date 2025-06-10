@@ -5,30 +5,28 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DatabaseUtil {
+    private static final String DEFAULT_JDBC_URL = "jdbc:mysql://localhost:3306/sistemapix_db?useSSL=false";
+    private static final String DEFAULT_JDBC_USER = "root";
+    private static final String DEFAULT_JDBC_PASSWORD = "root";
 
-    // --- IMPORTANTE: CONFIGURE SEUS DADOS AQUI ---
-    private static final String DATABASE_URL = "jdbc:mysql://localhost:3306/sistemapix?useSSL=false&serverTimezone=UTC";
-    private static final String DATABASE_USER = "root"; // Coloque seu usuário do MySQL aqui (geralmente "root")
-    private static final String DATABASE_PASSWORD = "Thi13579123#"; // Coloque sua senha do MySQL aqui
-    // ----------------------------------------------
-
-    // Bloco estático para carregar o driver do MySQL uma única vez
-    static {
+    public static Connection getConnection() throws SQLException {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
-            System.err.println("Driver do MySQL não encontrado! Verifique se o conector está no pom.xml.");
-            e.printStackTrace();
-            throw new RuntimeException("Falha ao carregar o driver do MySQL", e);
+            throw new SQLException("MySQL JDBC Driver não encontrado.", e);
         }
-    }
-
-    /**
-     * Obtém uma nova conexão com o banco de dados.
-     * @return uma objeto Connection.
-     * @throws SQLException se a conexão falhar.
-     */
-    public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
+        String jdbcUrl = System.getenv("DB_URL");
+        String jdbcUser = System.getenv("DB_USER");
+        String jdbcPassword = System.getenv("DB_PASSWORD");
+        if (jdbcUrl == null || jdbcUrl.isEmpty()) {
+            jdbcUrl = DEFAULT_JDBC_URL;
+        }
+        if (jdbcUser == null || jdbcUser.isEmpty()) {
+            jdbcUser = DEFAULT_JDBC_USER;
+        }
+        if (jdbcPassword == null) {
+            jdbcPassword = DEFAULT_JDBC_PASSWORD;
+        }
+        return DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPassword);
     }
 }

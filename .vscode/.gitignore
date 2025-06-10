@@ -1,0 +1,16 @@
+# Ignorar pasta target (gerada pelo Maven)
+target/
+
+# Ignorar arquivos temporários e de sistema
+*.log
+*.tmp
+*.class
+
+# Ignorar configurações específicas de IDEs
+.vscode/
+.idea/
+*.iml
+
+# Ignorar arquivos de sistema operacional
+.DS_Store
+Thumbs.db

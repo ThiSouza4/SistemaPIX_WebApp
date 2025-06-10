@@ -43,7 +43,6 @@ public class ClienteDAO {
     }
 
     public int inserir(Cliente cliente) throws SQLException {
-        // CORRIGIDO para inserir na coluna nome_completo
         String sql = "INSERT INTO clientes (nome_completo, cpf, telefone, email, senha_hash) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -63,15 +62,45 @@ public class ClienteDAO {
         }
         return 0;
     }
+    
+    // --- NOVO MÉTODO ADICIONADO AQUI ---
+    /**
+     * Verifica se um dado único (como CPF, e-mail ou telefone) já está em uso na tabela de clientes.
+     * @param nomeDaColuna O nome da coluna a ser verificada (ex: "cpf", "email").
+     * @param valor O valor a ser procurado.
+     * @return true se o dado já estiver em uso, false caso contrário.
+     */
+    public boolean isDadoUnicoEmUso(String nomeDaColuna, String valor) {
+        // Validação para evitar SQL Injection, permitindo apenas colunas conhecidas.
+        if (!nomeDaColuna.equals("cpf") && !nomeDaColuna.equals("email") && !nomeDaColuna.equals("telefone")) {
+            // Se a coluna não for uma das esperadas, retorna false para não travar o sistema.
+            return false;
+        }
+
+        String sql = "SELECT COUNT(*) FROM clientes WHERE " + nomeDaColuna + " = ?";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, valor);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
 
     private Cliente extractClienteFromResultSet(ResultSet rs) throws SQLException {
         Cliente cliente = new Cliente();
         cliente.setIdCliente(rs.getInt("id_cliente"));
-        // CORRIGIDO para ler da coluna nome_completo
         cliente.setNome(rs.getString("nome_completo")); 
         cliente.setCpf(rs.getString("cpf"));
-        // CORRIGIDO para ler da coluna telefone
-        cliente.setTelefone(rs.getString("telefone"));   
+        cliente.setTelefone(rs.getString("telefone"));  
         cliente.setEmail(rs.getString("email"));
         cliente.setSenhaHash(rs.getString("senha_hash"));
         return cliente;
