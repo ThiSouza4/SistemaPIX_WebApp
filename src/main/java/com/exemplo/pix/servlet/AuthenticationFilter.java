@@ -1,57 +1,56 @@
 package com.exemplo.pix.servlet;
 
-import jakarta.servlet.Filter;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
+import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 
-// Este filtro intercepta TODAS as requisições para a aplicação
 @WebFilter("/*")
 public class AuthenticationFilter implements Filter {
 
-    // Uma lista de "caminhos públicos" que não precisam de login
-    private static final Set<String> PUBLIC_PATHS = Set.of(
-        "/login.html", 
-        "/cadastro.html", 
-        "/index.html",
-        "/api/auth/login", 
-        "/api/auth/register",
-        "/css/", 
-        "/js/"
-    );
+    private final Set<String> allowedPaths = new HashSet<>(Arrays.asList(
+            "/login.html", "/cadastro.html", "/auth/login", "/auth/register"
+    ));
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-        
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
-        // Pega a sessão ATUAL, mas não cria uma nova se não existir
-        HttpSession session = httpRequest.getSession(false); 
+        HttpSession session = httpRequest.getSession(false);
 
-        // Pega o caminho da requisição (ex: /login.html, /api/data/dashboard)
         String path = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
 
-        // Verifica se o caminho é público
-        boolean isPublicPath = PUBLIC_PATHS.stream().anyMatch(path::startsWith);
+        boolean isLoggedIn = (session != null && session.getAttribute("cliente") != null);
         
-        // Verifica se o usuário está logado (se a sessão existe E tem o atributo 'idCliente')
-        boolean isLoggedIn = (session != null && session.getAttribute("idCliente") != null);
+        // Permite o acesso a recursos públicos (CSS, JS, imagens, etc.)
+        if (path.startsWith("/css/") || path.startsWith("/js/") || path.startsWith("/img/")) {
+            chain.doFilter(request, response);
+            return;
+        }
 
-        // REGRA DE ACESSO:
-        // Se o caminho for público, OU se o usuário estiver logado, permita o acesso.
-        if (isPublicPath || isLoggedIn) {
-            chain.doFilter(request, response); 
+        // Permite o acesso aos caminhos públicos definidos
+        if (allowedPaths.contains(path)) {
+            chain.doFilter(request, response);
+            return;
+        }
+
+        // Se o caminho não é público, verifica se o utilizador está logado
+        if (isLoggedIn) {
+            chain.doFilter(request, response);
         } else {
-            // Se o caminho for protegido e o usuário NÃO estiver logado, redirecione para o login.
+            // Se não está logado e o caminho é privado, redireciona para o login
             httpResponse.sendRedirect(httpRequest.getContextPath() + "/login.html");
         }
     }
+
+    // Métodos init e destroy podem ser mantidos vazios se não houver necessidade de inicialização/finalização.
+    @Override public void init(FilterConfig filterConfig) throws ServletException {}
+    @Override public void destroy() {}
 }

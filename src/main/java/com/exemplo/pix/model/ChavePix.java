@@ -1,45 +1,18 @@
 package com.exemplo.pix.model;
 
-// Este é o código corrigido e padronizado para a classe ChavePix.
-// As variáveis e métodos agora usam o padrão camelCase.
 public class ChavePix {
-    private int idChave;
+    private int id;
     private int idConta;
     private String tipoChave;
-    private String chave;
+    private String valorChave;
 
-    public ChavePix() {
-    }
-
-    public int getIdChave() {
-        return idChave;
-    }
-
-    public void setIdChave(int idChave) {
-        this.idChave = idChave;
-    }
-
-    public int getIdConta() {
-        return idConta;
-    }
-
-    public void setIdConta(int idConta) {
-        this.idConta = idConta;
-    }
-
-    public String getTipoChave() {
-        return tipoChave;
-    }
-
-    public void setTipoChave(String tipoChave) {
-        this.tipoChave = tipoChave;
-    }
-
-    public String getChave() {
-        return chave;
-    }
-
-    public void setChave(String chave) {
-        this.chave = chave;
-    }
+    // Getters e Setters
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
+    public int getIdConta() { return idConta; }
+    public void setIdConta(int idConta) { this.idConta = idConta; }
+    public String getTipoChave() { return tipoChave; }
+    public void setTipoChave(String tipoChave) { this.tipoChave = tipoChave; }
+    public String getValorChave() { return valorChave; }
+    public void setValorChave(String valorChave) { this.valorChave = valorChave; }
 }

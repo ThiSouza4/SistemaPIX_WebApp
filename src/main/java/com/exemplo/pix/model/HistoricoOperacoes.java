@@ -1,29 +1,27 @@
 package com.exemplo.pix.model;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 public class HistoricoOperacoes {
-    private int idOperacao;
+    private int id;
     private int idContaOrigem;
-    private Integer idContaDestino;
+    private Integer idContaDestino; // <-- Resgatado da versão antiga para permitir Saques
     private String tipoOperacao;
     private BigDecimal valor;
-    private Timestamp dataOperacao;
+    private LocalDateTime dataOperacao; // <-- Modernizado
 
-    // Getters
-    public int getIdOperacao() { return idOperacao; }
+    // Getters e Setters
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
     public int getIdContaOrigem() { return idContaOrigem; }
-    public Integer getIdContaDestino() { return idContaDestino; }
-    public String getTipoOperacao() { return tipoOperacao; }
-    public BigDecimal getValor() { return valor; }
-    public Timestamp getDataOperacao() { return dataOperacao; }
-
-    // Setters
-    public void setIdOperacao(int idOperacao) { this.idOperacao = idOperacao; }
     public void setIdContaOrigem(int idContaOrigem) { this.idContaOrigem = idContaOrigem; }
+    public Integer getIdContaDestino() { return idContaDestino; }
     public void setIdContaDestino(Integer idContaDestino) { this.idContaDestino = idContaDestino; }
+    public String getTipoOperacao() { return tipoOperacao; }
     public void setTipoOperacao(String tipoOperacao) { this.tipoOperacao = tipoOperacao; }
+    public BigDecimal getValor() { return valor; }
     public void setValor(BigDecimal valor) { this.valor = valor; }
-    public void setDataOperacao(Timestamp dataOperacao) { this.dataOperacao = dataOperacao; }
+    public LocalDateTime getDataOperacao() { return dataOperacao; }
+    public void setDataOperacao(LocalDateTime dataOperacao) { this.dataOperacao = dataOperacao; }
 }

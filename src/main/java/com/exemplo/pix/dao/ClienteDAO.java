@@ -3,21 +3,45 @@ package com.exemplo.pix.dao;
 import com.exemplo.pix.model.Cliente;
 import com.exemplo.pix.util.DatabaseUtil;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 public class ClienteDAO {
+
+    public Cliente inserir(Cliente cliente) throws SQLException {
+        String sql = "INSERT INTO clientes (nome, cpf, telefone, email, senha_hash) VALUES (?, ?, ?, ?, ?)";
+        try (Connection conexao = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conexao.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+            stmt.setString(1, cliente.getNome());
+            stmt.setString(2, cliente.getCpf());
+            stmt.setString(3, cliente.getTelefone());
+            stmt.setString(4, cliente.getEmail());
+            stmt.setString(5, cliente.getSenhaHash());
+
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("A criação do cliente falhou, nenhuma linha afetada.");
+            }
+
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    cliente.setId(generatedKeys.getInt(1));
+                    return cliente;
+                } else {
+                    throw new SQLException("A criação do cliente falhou, não foi possível obter o ID.");
+                }
+            }
+        }
+    }
+
     public Cliente buscarPorEmail(String email) {
         String sql = "SELECT * FROM clientes WHERE email = ?";
-        try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conexao = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conexao.prepareStatement(sql)) {
             stmt.setString(1, email);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return extractClienteFromResultSet(rs);
+                    return extrairClienteDoResultSet(rs);
                 }
             }
         } catch (SQLException e) {
@@ -27,13 +51,30 @@ public class ClienteDAO {
     }
 
     public Cliente buscarPorId(int id) {
-        String sql = "SELECT * FROM clientes WHERE id_cliente = ?";
-        try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        String sql = "SELECT * FROM clientes WHERE id = ?";
+        try (Connection conexao = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conexao.prepareStatement(sql)) {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return extractClienteFromResultSet(rs);
+                    return extrairClienteDoResultSet(rs);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    // MÉTODO ADICIONADO QUE FALTAVA
+    public Cliente buscarPorCpf(String cpf) {
+        String sql = "SELECT * FROM clientes WHERE cpf = ?";
+        try (Connection conexao = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conexao.prepareStatement(sql)) {
+            stmt.setString(1, cpf);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return extrairClienteDoResultSet(rs);
                 }
             }
         } catch (SQLException e) {
@@ -42,65 +83,28 @@ public class ClienteDAO {
         return null;
     }
 
-    public int inserir(Cliente cliente) throws SQLException {
-        String sql = "INSERT INTO clientes (nome_completo, cpf, telefone, email, senha_hash) VALUES (?, ?, ?, ?, ?)";
-        try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            
-            stmt.setString(1, cliente.getNome()); 
-            stmt.setString(2, cliente.getCpf());
-            stmt.setString(3, cliente.getTelefone());
-            stmt.setString(4, cliente.getEmail());
-            stmt.setString(5, cliente.getSenhaHash());
-            stmt.executeUpdate();
-            
-            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    return generatedKeys.getInt(1);
-                }
-            }
-        }
-        return 0;
-    }
-    
-    // --- NOVO MÉTODO ADICIONADO AQUI ---
-    /**
-     * Verifica se um dado único (como CPF, e-mail ou telefone) já está em uso na tabela de clientes.
-     * @param nomeDaColuna O nome da coluna a ser verificada (ex: "cpf", "email").
-     * @param valor O valor a ser procurado.
-     * @return true se o dado já estiver em uso, false caso contrário.
-     */
-    public boolean isDadoUnicoEmUso(String nomeDaColuna, String valor) {
-        // Validação para evitar SQL Injection, permitindo apenas colunas conhecidas.
-        if (!nomeDaColuna.equals("cpf") && !nomeDaColuna.equals("email") && !nomeDaColuna.equals("telefone")) {
-            // Se a coluna não for uma das esperadas, retorna false para não travar o sistema.
-            return false;
-        }
-
-        String sql = "SELECT COUNT(*) FROM clientes WHERE " + nomeDaColuna + " = ?";
+    public Cliente buscarPorTelefone(String telefone) {
+        String sql = "SELECT * FROM clientes WHERE telefone = ?";
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            stmt.setString(1, valor);
-            
+            stmt.setString(1, telefone);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getInt(1) > 0;
+                    return extrairClienteDoResultSet(rs);
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return false;
+        return null;
     }
 
-
-    private Cliente extractClienteFromResultSet(ResultSet rs) throws SQLException {
+    private Cliente extrairClienteDoResultSet(ResultSet rs) throws SQLException {
         Cliente cliente = new Cliente();
-        cliente.setIdCliente(rs.getInt("id_cliente"));
-        cliente.setNome(rs.getString("nome_completo")); 
+        cliente.setId(rs.getInt("id"));
+        cliente.setNome(rs.getString("nome"));
         cliente.setCpf(rs.getString("cpf"));
-        cliente.setTelefone(rs.getString("telefone"));  
+        cliente.setTelefone(rs.getString("telefone"));
         cliente.setEmail(rs.getString("email"));
         cliente.setSenhaHash(rs.getString("senha_hash"));
         return cliente;
